@@ -1,3 +1,4 @@
+
 import streamlit as st
 import re
 import random
@@ -41,11 +42,11 @@ def parse_docx(file):
 
     return sual_bloklari
 
-def create_shuffled_docx_and_answers(secilmis):
+def create_shuffled_docx_and_answers(suallar):
     yeni_doc = Document()
     cavablar = []
 
-    for idx, (sual_metni, variantlar) in enumerate(secilmis, start=1):
+    for idx, (sual_metni, variantlar) in enumerate(suallar, start=1):
         yeni_doc.add_paragraph(f"{idx}) {sual_metni}")
 
         dogru_cavab_mətni = variantlar[0]  # A) həmişə doğru idi
@@ -63,17 +64,26 @@ def create_shuffled_docx_and_answers(secilmis):
 st.set_page_config(page_title="Test Qarışdırıcı", page_icon="📄")
 st.title("📄 Word test suallarını qarışdır")
 st.markdown("""
-Yüklə `.docx` sənədini → 50 təsadüfi sual seçilsin → Variantlar qarışdırılsın → Cavab siyahısı çıxarılsın ✅
+Yüklə `.docx` sənədini → İstədiyin rejimi seç:
+- Bütün sualların variantları qarışdırılsın
+- Yalnız 50 təsadüfi sual seçilsin
+
+Variantlar qarışdırılır, cavab siyahısı çıxarılır ✅
 """)
 
 uploaded_file = st.file_uploader("Word (.docx) sənədini seç", type="docx")
+mode = st.radio("Rejim seç:", ["50 sual", "Bütün suallar"], index=0)
 
 if uploaded_file:
     suallar = parse_docx(uploaded_file)
     if len(suallar) < 5:
         st.error("Faylda kifayət qədər uyğun sual tapılmadı. Formatı yoxla.")
     else:
-        secilmis = random.sample(suallar, min(50, len(suallar)))
+        if mode == "50 sual":
+            secilmis = random.sample(suallar, min(50, len(suallar)))
+        else:
+            secilmis = suallar
+
         yeni_doc, cavablar = create_shuffled_docx_and_answers(secilmis)
 
         # Yeni .docx fayl
@@ -88,5 +98,5 @@ if uploaded_file:
 
         st.success("✅ Sənədlər hazırdır!")
 
-        st.download_button("📥 Qarışdırılmış suallar (.docx)", data=output_docx, file_name="qarisdirilmis_50_sual.docx")
+        st.download_button("📥 Qarışdırılmış suallar (.docx)", data=output_docx, file_name="qarisdirilmis_suallar.docx")
         st.download_button("📥 Cavab açarı (.txt)", data=output_answers, file_name="cavablar.txt")
